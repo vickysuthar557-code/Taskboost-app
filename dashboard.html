@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBoost - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="loadDashboardData()">
+    <div class="container">
+        <h1 style="text-align: center; color: #ff9800; border: 2px solid #ff9800; padding: 10px; border-radius: 5px; font-family: 'Verdana', sans-serif;">
+            ⚡️ TaskBoost 🚀
+        </h1>
+        
+        <h2>🧑‍💻 User Dashboard</h2>
+        <p>Phone: <strong id="user-phone">Loading...</strong></p>
+
+        <div class="stats-grid">
+            <div class="stats-card">
+                <h3>Total Earnings</h3>
+                <p id="total-earning">₹ 0.00</p>
+            </div>
+            
+            <div class="stats-card pointer" onclick="document.getElementById('video-section').scrollIntoView({behavior: 'smooth'})">
+                <h3>Watch Videos</h3>
+                <p style="font-size: 18px; color: blue;">▶️ Go</p>
+            </div>
+
+            <div class="stats-card pointer" onclick="document.getElementById('referral-section').scrollIntoView({behavior: 'smooth'})">
+                <h3>Referral & Earn</h3>
+                <p style="font-size: 18px; color: purple;">🔗 Go</p>
+            </div>
+
+            <div class="stats-card">
+                <h3>Withdrawable Amt</h3>
+                <p id="withdrawable-amount" style="color: green; font-weight: bold;">₹ 0.00</p> 
+            </div>
+        </div>
+        
+        <button 
+            onclick="document.getElementById('withdraw-form-section').style.display='block'; window.scrollTo(0, document.body.scrollHeight);"
+            style="background-color: white; color: #1976D2; border: 2px solid #1976D2; font-weight: bold; margin-top: 15px;"
+            class="pointer">
+            💸 Withdraw Now
+        </button>
+        <div class="stats-card" style="margin-top: 15px;">
+            <h3>Earning Rate (Per Minute)</h3>
+            <p id="current-rate" style="color: darkorange;">Loading...</p> 
+            <p id="rate-breakdown" style="font-size: 10px; color: #555;">(Base: ₹0.00 + Referral: ₹0.00)</p>
+        </div>
+
+        <button onclick="logoutUser()" class="logout-btn">Logout</button>
+        
+        <hr>
+
+        <div id="video-section">
+            <h3>📺 Videos to Watch & Earn (Time-Based)</h3>
+            <p class="small-text" style="color: gray;">Click the link, **START TIMER**, watch the video, and click **CLAIM** to earn.</p>
+            
+            <div id="video-list" class="video-container">
+                <p style="text-align: center;">Loading videos...</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <div id="referral-section">
+            <h3>🔗 Referral Link (Your ID)</h3>
+            <input type="text" id="referral-link" readonly>
+            <button onclick="copyReferralLink()">Copy Link</button>
+        </div>
+
+        <hr>
+
+        <div id="withdraw-form-section" style="display:none; margin-top: 20px;">
+            <h3>💸 Submit Withdrawal Request</h3>
+            
+            <input type="number" id="withdrawal-amount-input" placeholder="Amount (min 100)" required>
+            <input type="text" id="withdrawal-upi-input" placeholder="Your UPI ID" required>
+            
+            <button onclick="window.handleWithdrawal()">Request Withdrawal</button>
+        </div>
+        
+        <hr>
+        <div style="text-align: center;">
+            <h3>How It Works</h3>
+            <p style="font-size: 14px; color: #555;">1. Start watching a video and click 'Watch Video'.</p>
+            <p style="font-size: 14px; color: #555;">2. After watching, click **'Claim'** to credit the calculated amount to your wallet.</p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
+    <script src="./app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+    </script>
+</body>
+</html>

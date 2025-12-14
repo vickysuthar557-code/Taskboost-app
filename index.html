@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBoost - Login/Register</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; color: #ff9800; border: 2px solid #ff9800; padding: 10px; border-radius: 5px; font-family: 'Verdana', sans-serif;">
+            ⚡️ TaskBoost 🚀
+        </h1>
+        
+        <div id="login-section">
+            <h2>💰 Earning Platform Login</h2>
+            <input type="text" id="login-phone" placeholder="Phone Number" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button onclick="handleUserLogin()">Login</button> 
+            <p style="text-align:center; margin-top: 15px;">Don't have an account? <a href="#" onclick="showRegister()">Register Here</a></p>
+            <p style="text-align:center;"><a href="#" onclick="showAdminLogin()">Admin Access</a></p>
+        </div>
+
+        <div id="register-section" style="display:none;">
+            <h2>📝 Register & Pay</h2>
+            <input type="text" id="reg-phone" placeholder="Phone Number" required>
+            <input type="password" id="reg-password" placeholder="Create Password" required>
+            <select id="package-select" required>
+                <option value="">Select Package</option>
+            </select>
+            <input type="text" id="reg-referrer-id" placeholder="Referrer's ID (Optional)">
+            
+            <hr style="border-top: 1px dashed #ccc;">
+            <h3>Payment Details</h3>
+            
+            <p style="font-size: 18px; color: #1976D2;">💰 UPI ID: <strong id="current-upi-id">Loading...</strong></p>
+            
+            <div style="text-align: center; margin: 20px 0; border: 2px dashed #4CAF50; padding: 10px;">
+                <img id="upi-qr-code" src="" alt="UPI QR Code" style="width: 80%; max-width: 250px; border-radius: 5px;">
+                <p id="qr-loading" style="color: gray;">Loading QR code...</p>
+            </div>
+
+            <input type="text" id="trans-details" placeholder="Enter UPI Transaction ID (UTR/Ref No.)" required>
+            
+            <button onclick="handleRegistration()">Submit & Await Approval</button>
+            <button class="logout-btn" onclick="showLogin()">Back to Login</button>
+        </div>
+
+        <div id="admin-login-section" style="display:none;">
+            <h2>🔑 Admin Login</h2>
+            <input type="text" id="admin-id" placeholder="Admin ID" required> 
+            <input type="password" id="admin-password" placeholder="Admin Password" required> 
+            <button onclick="handleAdminLogin()">Login as Admin</button> 
+            <button class="logout-btn" onclick="showLogin()">Back to User Login</button>
+        </div>
+    </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
+    <script src="app.js"></script>
+</body>
+</html>
