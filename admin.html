@@ -17,46 +17,46 @@
         <hr>
         
         <h3>💰 Payment Settings (Dynamic UPI/QR)</h3>
-        <p>Current UPI ID: <strong id="display-upi-id">Loading...</strong></p>
-        <p>Current QR URL: <strong id="display-qr-url">Loading...</strong></p>
+        <div style="background: #fdf2e9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+            <p>Current UPI: <strong id="display-upi-id" style="color: blue;">Loading...</strong></p>
+            <p>Current QR URL: <span id="display-qr-url" style="font-size: 10px; color: gray;">Loading...</span></p>
+        </div>
         
         <input type="text" id="admin-upi-input" placeholder="New UPI ID (e.g., shop822@ybl)">
-        <input type="text" id="admin-qr-input" placeholder="New QR Image URL (Public Link)">
-        <button onclick="updateUpiSettings()">Update UPI/QR Settings</button>
+        <input type="text" id="admin-qr-input" placeholder="New QR Image URL (Public Direct Link)">
+        <button onclick="window.updateUpiSettings()" style="background-color: #4CAF50;">Update UPI/QR Settings</button>
         
         <hr>
 
-        <h3>📝 Pending Registrations (New Users)</h3>
-        <p style="color: gray; font-size: 12px;">Approve karne par multi-level referral bonus auto-grant hoga.</p>
+        <h3>📝 Pending Approvals (New/Upgrade)</h3>
+        <p style="color: gray; font-size: 12px;">Approve karne par referral rewards auto-grant honge.</p>
         <div id="pending-transactions" class="admin-list-container">
-            <p>Loading pending transactions...</p>
+            <p style="text-align: center;">Loading pending requests...</p>
         </div>
         
         <hr>
         
         <h3>💸 Pending Withdrawals</h3>
-        <p style="color: gray; font-size: 12px;">Approve karne se pahle payment karein.</p>
+        <p style="color: gray; font-size: 12px;">Approve karne se pehle manually payment karein.</p>
         <div id="pending-withdrawals" class="admin-list-container">
-            <p>Loading pending withdrawals...</p>
+            <p style="text-align: center;">Loading pending withdrawals...</p>
         </div>
 
         <hr>
         
         <h3>📺 Video Management</h3>
         <input type="text" id="new-video-desc" placeholder="Video Description">
-        <input type="text" id="new-video-link" placeholder="Video Link (YouTube/Others)">
-        <button onclick="addVideoLink()">Add Video</button>
+        <input type="text" id="new-video-link" placeholder="Video Link (URL)">
+        <button onclick="window.addVideoLink()">Add Video</button>
         
         <h4>Current Active Videos:</h4>
         <div id="current-videos" class="admin-list-container">
-            <p>Loading current videos...</p>
+            <p style="text-align: center;">Loading current videos...</p>
         </div>
     </div>
-    
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
     <script src="app.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', loadAdminData);
-    </script>
 </body>
 </html>
+
