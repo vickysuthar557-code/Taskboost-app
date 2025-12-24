@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,94 +6,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskBoost - Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* PhonePe Purple Theme & Styling */
+        .premium-box {
+            background: #fff;
+            border: 2px solid #5f259f;
+            padding: 20px;
+            margin-top: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .qr-display {
+            text-align: center;
+            background: #f8f4ff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .upi-box {
+            background: #fff;
+            border: 1px dashed #5f259f;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #5f259f;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+    </style>
 </head>
-<body onload="loadDashboardData()">
+<body onload="window.loadDashboardData()">
     <div class="container">
-        <h1 style="text-align: center; color: #ff9800; border: 2px solid #ff9800; padding: 10px; border-radius: 5px; font-family: 'Verdana', sans-serif;">
-            ⚡️ TaskBoost 🚀
-        </h1>
+        <h1 style="text-align: center; color: #ff9800; border: 2px solid #ff9800; padding: 10px; border-radius: 5px;">⚡️ TaskBoost 🚀</h1>
         
         <h2>🧑‍💻 User Dashboard</h2>
         <p>Phone: <strong id="user-phone">Loading...</strong></p>
 
         <div class="stats-grid">
-            <div class="stats-card">
-                <h3>Total Earnings</h3>
-                <p id="total-earning">₹ 0.00</p>
-            </div>
-            
-            <div class="stats-card pointer" onclick="document.getElementById('video-section').scrollIntoView({behavior: 'smooth'})">
-                <h3>Watch Videos</h3>
-                <p style="font-size: 18px; color: blue;">▶️ Go</p>
-            </div>
-
-            <div class="stats-card pointer" onclick="document.getElementById('referral-section').scrollIntoView({behavior: 'smooth'})">
-                <h3>Referral & Earn</h3>
-                <p style="font-size: 18px; color: purple;">🔗 Go</p>
-            </div>
-
-            <div class="stats-card">
-                <h3>Withdrawable Amt</h3>
-                <p id="withdrawable-amount" style="color: green; font-weight: bold;">₹ 0.00</p> 
-            </div>
+            <div class="stats-card"><h3>Total Earnings</h3><p id="total-earning">₹ 0.00</p></div>
+            <div class="stats-card"><h3>Withdrawable Amt</h3><p id="withdrawable-amount" style="color: green;">₹ 0.00</p></div>
         </div>
         
-        <button 
-            onclick="document.getElementById('withdraw-form-section').style.display='block'; window.scrollTo(0, document.body.scrollHeight);"
-            style="background-color: white; color: #1976D2; border: 2px solid #1976D2; font-weight: bold; margin-top: 15px;"
-            class="pointer">
-            💸 Withdraw Now
-        </button>
+        <button onclick="document.getElementById('withdraw-form-section').style.display='block'; window.scrollTo(0, document.body.scrollHeight);" class="pointer" style="background:#1976D2; color:white; width:100%; padding:12px; margin-top:10px; border:none; border-radius:5px; font-weight:bold;">💸 Withdraw Now</button>
+
         <div class="stats-card" style="margin-top: 15px;">
             <h3>Earning Rate (Per Minute)</h3>
-            <p id="current-rate" style="color: darkorange;">Loading...</p> 
-            <p id="rate-breakdown" style="font-size: 10px; color: #555;">(Base: ₹0.00 + Referral: ₹0.00)</p>
+            <p id="current-rate" style="color: darkorange; font-weight:bold;">Loading...</p> 
         </div>
 
-        <button onclick="logoutUser()" class="logout-btn">Logout</button>
+        <button id="upgrade-btn" onclick="window.showUpgradeForm()" style="display:none; background: linear-gradient(135deg, #5f259f, #8e44ad); color:white; width:100%; padding:15px; border-radius:10px; margin-top:10px; border:none; font-weight:bold; cursor:pointer; font-size: 16px;">🚀 Upgrade to Premium Plan</button>
+
+        <div id="upgrade-section" class="premium-box" style="display:none;">
+            <h3 style="color:#5f259f; text-align:center; margin-top:0;">💎 Premium Upgrade</h3>
+            
+            <label style="font-weight:bold; font-size:14px;">Select Package:</label>
+            <select id="upgrade-package-select" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc;"></select>
+            
+            <div class="qr-display">
+                <p style="font-size:13px; color:#666; margin-bottom:10px;">Scan QR to Pay</p>
+                <img id="upgrade-qr-code" src="" alt="Admin QR" style="width:180px; height:180px; display:block; margin: 0 auto 10px; border-radius:10px; border: 2px solid #eee;">
+                
+                <p style="font-size:12px; color:#666;">Or Copy UPI ID:</p>
+                <div id="upgrade-upi-id" class="upi-box">Loading UPI ID...</div>
+
+                <button type="button" onclick="window.triggerDirectPayment(true)" style="background:#5f259f; color:white; width:100%; padding:12px; border-radius:8px; border:none; font-weight:bold; cursor:pointer;">📲 Pay via PhonePe/GPay/Paytm</button>
+            </div>
+
+            <label style="font-weight:bold; font-size:14px;">Transaction UTR/ID:</label>
+            <input type="text" id="upgrade-trans-details" placeholder="Enter 12-digit UTR Number" style="width:100%; padding:12px; margin-top:5px; border:1px solid #ccc; border-radius:8px; box-sizing: border-box;">
+            
+            <button onclick="window.handleUpgradeSubmit()" style="width:100%; background: #28a745; color:white; padding:15px; margin-top: 15px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Submit Upgrade Request</button>
+            
+            <button onclick="document.getElementById('upgrade-section').style.display='none'" style="width:100%; background:none; color:red; margin-top:10px; border:none; cursor:pointer;">Cancel</button>
+        </div>
+
+        <button onclick="window.logoutUser()" class="logout-btn" style="margin-top:20px;">Logout</button>
         
-        <hr>
+        <hr style="margin: 20px 0;">
 
         <div id="video-section">
-            <h3>📺 Videos to Watch & Earn (Time-Based)</h3>
-            <p class="small-text" style="color: gray;">Click the link, **START TIMER**, watch the video, and click **CLAIM** to earn.</p>
-            
-            <div id="video-list" class="video-container">
-                <p style="text-align: center;">Loading videos...</p>
+            <h3>📺 Videos to Watch & Earn</h3>
+            <div id="video-list">
+                <p style="text-align:center; color:gray;">Loading tasks...</p>
             </div>
         </div>
 
-        <hr>
-
-        <div id="referral-section">
-            <h3>🔗 Referral Link (Your ID)</h3>
-            <input type="text" id="referral-link" readonly>
-            <button onclick="copyReferralLink()">Copy Link</button>
+        <div id="referral-section" style="background:#f9f9f9; padding:15px; border-radius:10px; margin-top:20px; border:1px dashed #ccc;">
+            <h3>🔗 Your Referral Link</h3>
+            <input type="text" id="referral-link" readonly style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; background:#eee; box-sizing: border-box;">
+            <button onclick="window.copyReferralLink()" style="width:100%; background:#000; color:#fff; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Copy Link</button>
         </div>
 
-        <hr>
-
-        <div id="withdraw-form-section" style="display:none; margin-top: 20px;">
-            <h3>💸 Submit Withdrawal Request</h3>
-            
-            <input type="number" id="withdrawal-amount-input" placeholder="Amount (min 100)" required>
-            <input type="text" id="withdrawal-upi-input" placeholder="Your UPI ID" required>
-            
-            <button onclick="window.handleWithdrawal()">Request Withdrawal</button>
-        </div>
-        
-        <hr>
-        <div style="text-align: center;">
-            <h3>How It Works</h3>
-            <p style="font-size: 14px; color: #555;">1. Start watching a video and click 'Watch Video'.</p>
-            <p style="font-size: 14px; color: #555;">2. After watching, click **'Claim'** to credit the calculated amount to your wallet.</p>
+        <div id="withdraw-form-section" style="display:none; margin-top: 20px; background:#fff; padding:15px; border-radius:10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h3>💸 Withdrawal Request</h3>
+            <input type="number" id="withdrawal-amount-input" placeholder="Amount (min ₹999)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
+            <input type="text" id="withdrawal-upi-input" placeholder="Your UPI ID (e.g., name@upi)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
+            <button onclick="window.handleWithdrawal()" style="width:100%; background:#2e7d32; color:white; padding:15px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Request Withdrawal</button>
         </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
-    <script src="./app.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', loadDashboardData);
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
