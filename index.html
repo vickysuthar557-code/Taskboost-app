@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,24 +26,32 @@
             <h2>📝 Register & Pay</h2>
             <input type="text" id="reg-phone" placeholder="Phone Number" required>
             <input type="password" id="reg-password" placeholder="Create Password" required>
-            <select id="package-select" required>
+            
+            <select id="package-select" onchange="window.toggleRegisterPayment()" required>
                 <option value="">Select Package</option>
             </select>
+            
             <input type="text" id="reg-referrer-id" placeholder="Referrer's ID (Optional)">
             
-            <hr style="border-top: 1px dashed #ccc;">
-            <h3>Payment Details</h3>
-            
-            <p style="font-size: 18px; color: #1976D2;">💰 UPI ID: <strong id="current-upi-id">Loading...</strong></p>
-            
-            <div style="text-align: center; margin: 20px 0; border: 2px dashed #4CAF50; padding: 10px;">
-                <img id="upi-qr-code" src="" alt="UPI QR Code" style="width: 80%; max-width: 250px; border-radius: 5px;">
-                <p id="qr-loading" style="color: gray;">Loading QR code...</p>
-            </div>
+            <div id="register-payment-area" style="display:none;">
+                <hr style="border-top: 1px dashed #ccc;">
+                <h3>Payment Details</h3>
+                
+                <button type="button" onclick="window.triggerDirectPayment(false)" style="background:#5f259f; color:white; width:100%; padding:14px; border:none; border-radius:10px; font-weight:bold; margin-bottom:12px; cursor:pointer; font-size:16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    📲 Pay Now
+</button>
+                
 
-            <input type="text" id="trans-details" placeholder="Enter UPI Transaction ID (UTR/Ref No.)" required>
+                <p style="font-size: 18px; color: #1976D2; text-align:center;">OR Scan QR Code:</p>
+                <div style="text-align: center; margin: 10px 0; border: 2px dashed #4CAF50; padding: 10px;">
+                    <img id="upi-qr-code" src="" alt="UPI QR Code" style="width: 200px; border-radius: 5px;">
+                    <p style="font-size:12px;">UPI ID: <strong id="current-upi-id">...</strong></p>
+                </div>
+
+                <input type="text" id="trans-details" placeholder="Enter UPI Transaction ID (UTR)">
+            </div>
             
-            <button onclick="handleRegistration()">Submit & Await Approval</button>
+            <button onclick="handleRegistration()" style="margin-top: 10px;">Submit & Start Earning</button>
             <button class="logout-btn" onclick="showLogin()">Back to Login</button>
         </div>
 
@@ -55,7 +64,19 @@
         </div>
     </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
     <script src="app.js"></script>
+    <script>
+        window.toggleRegisterPayment = function() {
+            const pkg = document.getElementById('package-select').value;
+            const payArea = document.getElementById('register-payment-area');
+            if(pkg === "FREE_PLAN" || pkg === "") {
+                payArea.style.display = 'none';
+            } else {
+                payArea.style.display = 'block';
+                window.fetchRegisterUpi();
+            }
+        };
+    </script>
 </body>
 </html>
