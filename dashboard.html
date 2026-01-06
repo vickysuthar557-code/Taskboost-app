@@ -1,111 +1,121 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskBoost - Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>TaskBoost Elite</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* PhonePe Purple Theme & Styling */
-        .premium-box {
-            background: #fff;
-            border: 2px solid #5f259f;
-            padding: 20px;
-            margin-top: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .qr-display {
-            text-align: center;
-            background: #f8f4ff;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        .upi-box {
-            background: #fff;
-            border: 1px dashed #5f259f;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            color: #5f259f;
-            margin-bottom: 10px;
-            word-break: break-all;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        :root { --orange-main: #ff8c00; --bg: #f8fafc; }
+        body { margin: 0; background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; display: flex; justify-content: center; }
+        .app-shell { width: 100%; max-width: 420px; min-height: 100vh; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logo { font-weight: 800; font-size: 20px; color: var(--orange-main); }
+        .user-info { font-size: 11px; font-weight: 700; color: #64748b; background: #fff; padding: 6px 14px; border-radius: 100px; border: 1px solid #e2e8f0; }
+        
+        .earning-box { background: #0f172a; border-radius: 40px; padding: 55px 20px; color: white; text-align: center; margin-bottom: 25px; position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .speedo-arc { position: absolute; bottom: -110px; left: 50%; transform: translateX(-50%) rotate(-45deg); width: 320px; height: 320px; border: 18px solid transparent; border-radius: 50%; background: conic-gradient(from 0deg at 50% 50%, #ff0000, #ff8c00, #22c55e, #ff8c00, #ff0000); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 18px), #fff calc(100% - 17px)); mask: radial-gradient(farthest-side, transparent calc(100% - 18px), #fff calc(100% - 17px)); opacity: 0.35; transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .earn-val { font-size: 58px; font-weight: 800; margin: 5px 0; position: relative; z-index: 5; color: #ffffff; letter-spacing: -2px; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: #fff; padding: 18px; border-radius: 20px; border: 1px solid #f1f5f9; text-align: center; }
+        .stat-label { font-size: 10px; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 5px; text-transform: uppercase; }
+        .stat-data { font-size: 18px; font-weight: 800; color: #1e293b; }
+        
+        .main-watch-btn { width: 100%; padding: 22px; background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%); border: none; border-radius: 25px; color: white; font-weight: 800; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 25px; box-shadow: 0 15px 30px rgba(221, 36, 118, 0.3); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        
+        .plan-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border-radius: 20px; margin-bottom: 20px; }
+        .plan-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
+        
+        .sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #fff; padding: 25px; border-radius: 30px 30px 0 0; transition: 0.3s; z-index: 100; box-sizing: border-box; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
+        .sheet.active { bottom: 0; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99; }
+        
+        input { width: 100%; padding: 16px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 14px; box-sizing: border-box; font-family: inherit; }
     </style>
 </head>
 <body onload="window.loadDashboardData()">
-    <div class="container">
-        <h1 style="text-align: center; color: #ff9800; border: 2px solid #ff9800; padding: 10px; border-radius: 5px;">⚡️ TaskBoost 🚀</h1>
-        
-        <h2>🧑‍💻 User Dashboard</h2>
-        <p>Phone: <strong id="user-phone">Loading...</strong></p>
 
-        <div class="stats-grid">
-            <div class="stats-card"><h3>Total Earnings</h3><p id="total-earning">₹ 0.00</p></div>
-            <div class="stats-card"><h3>Withdrawable Amt</h3><p id="withdrawable-amount" style="color: green;">₹ 0.00</p></div>
-        </div>
-        
-        <button onclick="document.getElementById('withdraw-form-section').style.display='block'; window.scrollTo(0, document.body.scrollHeight);" class="pointer" style="background:#1976D2; color:white; width:100%; padding:12px; margin-top:10px; border:none; border-radius:5px; font-weight:bold;">💸 Withdraw Now</button>
+<div class="app-shell">
+    <div class="header">
+        <div class="logo">TASKBOOST</div>
+        <div id="user-phone" class="user-info">ID: Loading...</div>
+    </div>
 
-        <div class="stats-card" style="margin-top: 15px;">
-            <h3>Earning Rate (Per Minute)</h3>
-            <p id="current-rate" style="color: darkorange; font-weight:bold;">Loading...</p> 
-        </div>
-
-        <button id="upgrade-btn" onclick="window.showUpgradeForm()" style="display:none; background: linear-gradient(135deg, #5f259f, #8e44ad); color:white; width:100%; padding:15px; border-radius:10px; margin-top:10px; border:none; font-weight:bold; cursor:pointer; font-size: 16px;">🚀 Upgrade to Premium Plan</button>
-
-        <div id="upgrade-section" class="premium-box" style="display:none;">
-            <h3 style="color:#5f259f; text-align:center; margin-top:0;">💎 Premium Upgrade</h3>
-            
-            <label style="font-weight:bold; font-size:14px;">Select Package:</label>
-            <select id="upgrade-package-select" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc;"></select>
-            
-            <div class="qr-display">
-                <p style="font-size:13px; color:#666; margin-bottom:10px;">Scan QR to Pay</p>
-                <img id="upgrade-qr-code" src="" alt="Admin QR" style="width:180px; height:180px; display:block; margin: 0 auto 10px; border-radius:10px; border: 2px solid #eee;">
-                
-                <p style="font-size:12px; color:#666;">Or Copy UPI ID:</p>
-                <div id="upgrade-upi-id" class="upi-box">Loading UPI ID...</div>
-
-                <button type="button" onclick="window.triggerDirectPayment(true)" style="background:#5f259f; color:white; width:100%; padding:12px; border-radius:8px; border:none; font-weight:bold; cursor:pointer;">📲 Pay via PhonePe/GPay/Paytm</button>
-            </div>
-
-            <label style="font-weight:bold; font-size:14px;">Transaction UTR/ID:</label>
-            <input type="text" id="upgrade-trans-details" placeholder="Enter 12-digit UTR Number" style="width:100%; padding:12px; margin-top:5px; border:1px solid #ccc; border-radius:8px; box-sizing: border-box;">
-            
-            <button onclick="window.handleUpgradeSubmit()" style="width:100%; background: #28a745; color:white; padding:15px; margin-top: 15px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Submit Upgrade Request</button>
-            
-            <button onclick="document.getElementById('upgrade-section').style.display='none'" style="width:100%; background:none; color:red; margin-top:10px; border:none; cursor:pointer;">Cancel</button>
-        </div>
-
-        <button onclick="window.logoutUser()" class="logout-btn" style="margin-top:20px;">Logout</button>
-        
-        <hr style="margin: 20px 0;">
-
-        <div id="video-section">
-            <h3>📺 Videos to Watch & Earn</h3>
-            <div id="video-list">
-                <p style="text-align:center; color:gray;">Loading tasks...</p>
-            </div>
-        </div>
-
-        <div id="referral-section" style="background:#f9f9f9; padding:15px; border-radius:10px; margin-top:20px; border:1px dashed #ccc;">
-            <h3>🔗 Your Referral Link</h3>
-            <input type="text" id="referral-link" readonly style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; background:#eee; box-sizing: border-box;">
-            <button onclick="window.copyReferralLink()" style="width:100%; background:#000; color:#fff; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Copy Link</button>
-        </div>
-
-        <div id="withdraw-form-section" style="display:none; margin-top: 20px; background:#fff; padding:15px; border-radius:10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <h3>💸 Withdrawal Request</h3>
-            <input type="number" id="withdrawal-amount-input" placeholder="Amount (min ₹999)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
-            <input type="text" id="withdrawal-upi-input" placeholder="Your UPI ID (e.g., name@upi)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
-            <button onclick="window.handleWithdrawal()" style="width:100%; background:#2e7d32; color:white; padding:15px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Request Withdrawal</button>
+    <div class="earning-box">
+        <div class="speedo-arc"></div>
+        <span class="stat-label" style="color:#eecb32f7 opacity:0.9; font-size: 25px; font-weight: 800; letter-spacing: 1px;">TOTAL EARNINGS</span>
+        <div class="earn-val" id="total-earning">₹0.00</div>
+        <div style="font-size:10px; background:rgba(255,255,255,0.1); display:inline-block; padding:5px 15px; border-radius:50px; font-weight:bold; position:relative; z-index:5;">
+            <i class="fas fa-shield-alt"></i> VERIFIED
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
-    <script src="app.js"></script>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-label">WITHDRAWABLE</span>
+            <div class="stat-data" id="withdrawable-amount" style="color:#10b981;">₹0.00</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">LIVE RATE</span>
+            <div class="stat-data" id="current-rate">₹0.0000</div>
+        </div>
+    </div>
+
+    <button class="main-watch-btn" onclick="document.getElementById('video-list').scrollIntoView({behavior:'smooth'})">
+        <i class="fas fa-play"></i> START MISSION
+    </button>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+        <button onclick="window.openWithdrawModal()" style="padding:15px; border-radius:18px; border:none; background:#0f172a; color:white; font-weight:bold;">Withdraw</button>
+        <button onclick="window.loadWithdrawHistory()" style="padding:15px; border-radius:18px; border:1px solid #e2e8f0; background:white; font-weight:bold;">History</button>
+    </div>
+
+    <div id="video-list" style="margin-bottom:20px;"></div>
+
+    <div style="background:white; padding:20px; border-radius:24px; margin-bottom:20px;">
+        <h4 style="margin:0 0 15px 0;">Referral Rewards</h4>
+        <table class="plan-table" style="width:100%;">
+            <tr style="color:#94a3b8; font-size:10px;"><td>LEVEL</td><td>BONUS</td><td>RATE+</td></tr>
+            <tr><td>Level 1 (Direct)</td><td style="color:#10b981;">₹100</td><td>+0.25</td></tr>
+            <tr><td>Level 2</td><td style="color:#10b981;">₹50</td><td>+0.15</td></tr>
+            <tr><td>Level 3</td><td style="color:#10b981;">₹30</td><td>+0.10</td></tr>
+            <tr><td>Level 4-5</td><td style="color:#10b981;">₹20</td><td>+0.05</td></tr>
+            <tr><td>Level 6-10</td><td style="color:#10b981;">₹10</td><td>+0.05</td></tr>
+        </table>
+        
+        <div style="background:#f8fafc; padding:10px; border-radius:14px; border:1px solid #e2e8f0; display:flex;">
+            <input type="text" id="referral-link" readonly style="border:none; background:transparent; margin:0; padding:5px; font-size:11px; flex:1;">
+            <button onclick="window.copyReferralLink()" style="width:auto; padding:5px 15px; margin:0; font-size:11px; background:#ff8c00; border-radius:8px; color:white;">COPY</button>
+        </div>
+    </div>
+
+    <a href="https://t.me/taskboostindia" target="_blank" style="text-align:center; display:block; padding:15px; background:#0088cc; color:white; text-decoration:none; border-radius:18px; font-weight:bold; margin-bottom:20px;">
+        <i class="fab fa-telegram-plane"></i> JOIN TELEGRAM
+    </a>
+
+    <button onclick="window.logoutUser()" style="background:none; border:none; color:#cbd5e1; font-weight:bold; margin:20px 0; cursor:pointer;">LOGOUT SESSION</button>
+    
+    <footer style="text-align:center; font-size:10px; color:#94a3b8; padding-bottom:20px;">
+        &copy; 2026 TaskBoost Elite. All Rights Reserved.<br>
+        Terms & Conditions | Privacy Policy
+    </footer>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+    <div id="sheet-content">
+        </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
+<script src="app.js"></script>
+<script>
+    function openSheet() { document.getElementById('overlay').style.display='block'; document.getElementById('sheet').classList.add('active'); }
+    function closeSheet() { document.getElementById('overlay').style.display='none'; document.getElementById('sheet').classList.remove('active'); }
+</script>
 </body>
 </html>
