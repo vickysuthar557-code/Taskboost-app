@@ -1,82 +1,110 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskBoost - Login/Register</title>
-    <link rel="stylesheet" href="style.css">
+    <title>TaskBoost Elite</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 400px; }
+        
+        /* Premium Logo Area */
+        .logo-area { text-align: center; margin-bottom: 30px; }
+        .logo-text { font-size: 28px; font-weight: 800; color: white; letter-spacing: -1px; }
+        .logo-sub { color: #94a3b8; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+
+        .card { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5); }
+        h2 { text-align: center; color: #0f172a; margin-top: 0; font-weight: 800; font-size: 22px; }
+        
+        input, select { width: 100%; padding: 16px; margin: 8px 0; border: 2px solid #e2e8f0; border-radius: 16px; box-sizing: border-box; font-family: inherit; background: #f8fafc; font-weight: 600; outline: none; transition: 0.3s; }
+        input:focus { border-color: #ff8c00; background: #fff; }
+        
+        button { width: 100%; padding: 18px; background: linear-gradient(135deg, #ff8c00 0%, #ff5e00 100%); color: white; border: none; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 20px; font-size: 16px; box-shadow: 0 10px 30px -5px rgba(255, 94, 0, 0.4); transition: transform 0.2s; }
+        button:active { transform: scale(0.98); }
+        
+        .link { text-align: center; margin-top: 20px; font-size: 13px; color: #64748b; cursor: pointer; font-weight: 700; }
+        .link span { color: #ff8c00; }
+        
+        .admin-box { margin-top: 20px; border-top: 1px dashed #cbd5e1; padding-top: 15px; display: none; }
+        
+        /* Referral Table for Register Page */
+        .plan-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 20px; background: #f8fafc; border-radius: 15px; overflow: hidden; }
+        .plan-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #334155; }
+        .plan-table tr:last-child td { border-bottom: none; }
+        .plan-header { background: #e2e8f0; color: #475569 !important; font-size: 10px; text-transform: uppercase; }
+    </style>
 </head>
 <body>
+
     <div class="container">
-        <h1 style="text-align: center; color: #ff9800; border: 2px solid #ff9800; padding: 10px; border-radius: 5px; font-family: 'Verdana', sans-serif;">
-            ⚡️ TaskBoost 🚀
-        </h1>
-        
-        <div id="login-section">
-            <h2>💰 Earning Platform Login</h2>
-            <input type="text" id="login-phone" placeholder="Phone Number" required>
-            <input type="password" id="login-password" placeholder="Password" required>
-            <button onclick="handleUserLogin()">Login</button> 
-            <p style="text-align:center; margin-top: 15px;">Don't have an account? <a href="#" onclick="showRegister()">Register Here</a></p>
-            <p style="text-align:center;"><a href="#" onclick="showAdminLogin()">Admin Access</a></p>
+        <div class="logo-area">
+            <div class="logo-text">⚡️ TASKBOOST</div>
+            <div class="logo-sub">Elite Earning Platform</div>
         </div>
 
-        <div id="register-section" style="display:none;">
-            <h2>📝 Register & Pay</h2>
-            <input type="text" id="reg-phone" placeholder="Phone Number" required>
-            <input type="password" id="reg-password" placeholder="Create Password" required>
+        <div id="login-box" class="card">
+            <h2>Welcome Back</h2>
+            <input type="text" id="login-phone" placeholder="Phone Number">
+            <input type="password" id="login-password" placeholder="Password">
+            <button onclick="window.handleUserLogin()">SECURE LOGIN</button>
             
-            <select id="package-select" onchange="window.toggleRegisterPayment()" required>
-                <option value="">Select Package</option>
-            </select>
+            <div class="link" onclick="window.toggleForm('register')">New User? <span>Create Account</span></div>
+            <div class="link" onclick="document.getElementById('admin-login').style.display='block'" style="font-size:11px; opacity:0.5; margin-top:30px;">Admin Panel</div>
             
-            <input type="text" id="reg-referrer-id" placeholder="Referrer's ID (Optional)">
-            
-            <div id="register-payment-area" style="display:none;">
-                <hr style="border-top: 1px dashed #ccc;">
-                <h3>Payment Details</h3>
-                
-                <button type="button" onclick="window.triggerDirectPayment(false)" style="background:#5f259f; color:white; width:100%; padding:14px; border:none; border-radius:10px; font-weight:bold; margin-bottom:12px; cursor:pointer; font-size:16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    📲 Pay Now
-</button>
-                
-
-                <p style="font-size: 18px; color: #1976D2; text-align:center;">OR Scan QR Code:</p>
-                <div style="text-align: center; margin: 10px 0; border: 2px dashed #4CAF50; padding: 10px;">
-                    <img id="upi-qr-code" src="" alt="UPI QR Code" style="width: 200px; border-radius: 5px;">
-                    <p style="font-size:12px;">UPI ID: <strong id="current-upi-id">...</strong></p>
-                </div>
-
-                <input type="text" id="trans-details" placeholder="Enter UPI Transaction ID (UTR)">
+            <div id="admin-login" class="admin-box">
+                <input type="text" id="admin-id" placeholder="Admin ID">
+                <input type="password" id="admin-pass" placeholder="Password">
+                <button onclick="window.adminLogin()" style="background:#0f172a; box-shadow:none;">ACCESS DASHBOARD</button>
             </div>
-            
-            <button onclick="handleRegistration()" style="margin-top: 10px;">Submit & Start Earning</button>
-            <button class="logout-btn" onclick="showLogin()">Back to Login</button>
         </div>
 
-        <div id="admin-login-section" style="display:none;">
-            <h2>🔑 Admin Login</h2>
-            <input type="text" id="admin-id" placeholder="Admin ID" required> 
-            <input type="password" id="admin-password" placeholder="Admin Password" required> 
-            <button onclick="handleAdminLogin()">Login as Admin</button> 
-            <button class="logout-btn" onclick="showLogin()">Back to User Login</button>
+        <div id="reg-box" class="card" style="display:none;">
+            <h2>Create Account</h2>
+            <input type="text" id="reg-name" placeholder="Full Name">
+            <input type="text" id="reg-phone" placeholder="Phone Number">
+            <input type="password" id="reg-password" placeholder="Create Password">
+            <input type="text" id="reg-referrer-id" placeholder="Referral ID (Optional)">
+            
+            <select id="package-select" onchange="window.togglePay()">
+                <option value="">Select Package</option>
+                <option value="FREE_PLAN">Free Trial (₹0) - ₹0.20/min</option>
+                <option value="PKG_500">Basic (₹500) - ₹0.50/min</option>
+                <option value="PKG_1000">Bronze (₹1000) - ₹0.80/min</option>
+                <option value="PKG_2000">Silver (₹2000) - ₹1.60/min</option>
+                <option value="PKG_3000">Gold (₹3000) - ₹2.20/min</option>
+                <option value="PKG_5000">Platinum (₹5000) - ₹5.00/min</option>
+                <option value="PKG_10000">Diamond (₹10000) - ₹10.00/min</option>
+            </select>
+
+            <div id="payment-section" style="display:none; background:#fff7ed; padding:15px; border-radius:15px; border:2px dashed #ff9d2e; margin-top:10px; text-align:center;">
+                <p style="margin:0 0 10px 0; font-size:12px; font-weight:bold; color:#c2410c;">Step 1: Payment</p>
+                <button onclick="window.payNow()" style="background:#22c55e; margin-top:0; padding:12px; box-shadow:none;">📲 Pay via UPI App</button>
+                
+                <p style="margin:10px 0; font-size:11px; color:#666;">OR Scan QR Code</p>
+                <img id="pay-qr-img" src="" style="width:140px; border-radius:10px; border:2px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
+                <p style="font-size:11px; margin-top:5px;">UPI: <strong id="pay-upi-display" style="user-select:all;">...</strong></p>
+                
+                <p style="margin:10px 0 5px 0; font-size:12px; font-weight:bold; color:#c2410c;">Step 2: Verification</p>
+                <input type="text" id="trans-details" placeholder="Enter 12-Digit UTR Number" style="background:white;">
+            </div>
+
+            <table class="plan-table">
+                <tr class="plan-header"><td>Level</td><td>BONUS</td><td>RATE+</td></tr>
+                <tr><td>Level 1</td><td style="color:#10b981;">₹100</td><td>+0.25</td></tr>
+                <tr><td>Level 2</td><td style="color:#10b981;">₹50</td><td>+0.15</td></tr>
+                <tr><td>Level 3</td><td style="color:#10b981;">₹30</td><td>+0.10</td></tr>
+                <tr><td>Level 4-5</td><td style="color:#10b981;">₹20</td><td>+0.05</td></tr>
+                <tr><td>Level 6-10</td><td style="color:#10b981;">₹10</td><td>+0.05</td></tr>
+            </table>
+
+            <button onclick="window.handleRegistration()">REGISTER NOW</button>
+            <div class="link" onclick="window.toggleForm('login')">Back to Login</div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
     <script src="app.js"></script>
-    <script>
-        window.toggleRegisterPayment = function() {
-            const pkg = document.getElementById('package-select').value;
-            const payArea = document.getElementById('register-payment-area');
-            if(pkg === "FREE_PLAN" || pkg === "") {
-                payArea.style.display = 'none';
-            } else {
-                payArea.style.display = 'block';
-                window.fetchRegisterUpi();
-            }
-        };
-    </script>
 </body>
-</html>
+                    </html>
+                    
