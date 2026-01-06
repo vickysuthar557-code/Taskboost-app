@@ -3,60 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskBoost - Admin Panel</title>
-    <link rel="stylesheet" href="style.css">
+    <title>TaskBoost Admin</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; padding: 20px; max-width: 800px; margin: auto; }
+        h1 { color: #0f172a; margin-bottom: 30px; }
+        .card { background: white; padding: 25px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h3 { margin-top: 0; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 15px 0; }
+        .row:last-child { border-bottom: none; }
+        button { cursor: pointer; padding: 8px 15px; border: none; border-radius: 10px; color: white; font-weight: bold; margin-left: 5px; font-size: 13px; }
+        input { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; margin-right: 5px; outline: none; }
+        input:focus { border-color: #ff8c00; }
+    </style>
 </head>
-<body onload="loadAdminData()">
-    <div class="container">
-        <h1 style="text-align: center; color: #ff9800; border: 2px solid #ff9800; padding: 10px; border-radius: 5px; font-family: 'Verdana', sans-serif;">
-            ⚡️ TaskBoost 🚀
-        </h1>
-        <h2>🛠️ Control Panel</h2>
-        <button onclick="logoutUser()" class="logout-btn">Admin Logout</button>
-        
-        <hr>
-        
-        <h3>💰 Payment Settings (Dynamic UPI/QR)</h3>
-        <div style="background: #fdf2e9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-            <p>Current UPI: <strong id="display-upi-id" style="color: blue;">Loading...</strong></p>
-            <p>Current QR URL: <span id="display-qr-url" style="font-size: 10px; color: gray;">Loading...</span></p>
-        </div>
-        
-        <input type="text" id="admin-upi-input" placeholder="New UPI ID (e.g., shop822@ybl)">
-        <input type="text" id="admin-qr-input" placeholder="New QR Image URL (Public Direct Link)">
-        <button onclick="window.updateUpiSettings()" style="background-color: #4CAF50;">Update UPI/QR Settings</button>
-        
-        <hr>
+<body onload="window.loadAdminPanel()">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h1>🛡️ Admin Dashboard</h1>
+        <button onclick="window.location.href='index.html'" style="background:#ef4444;">LOGOUT</button>
+    </div>
 
-        <h3>📝 Pending Approvals (New/Upgrade)</h3>
-        <p style="color: gray; font-size: 12px;">Approve karne par referral rewards auto-grant honge.</p>
-        <div id="pending-transactions" class="admin-list-container">
-            <p style="text-align: center;">Loading pending requests...</p>
-        </div>
-        
-        <hr>
-        
-        <h3>💸 Pending Withdrawals</h3>
-        <p style="color: gray; font-size: 12px;">Approve karne se pehle manually payment karein.</p>
-        <div id="pending-withdrawals" class="admin-list-container">
-            <p style="text-align: center;">Loading pending withdrawals...</p>
-        </div>
+    <div class="card">
+        <h3>💰 Payment Details</h3>
+        <input type="text" id="admin-upi" placeholder="UPI ID" style="width:200px;">
+        <input type="text" id="admin-qr" placeholder="QR Image URL" style="width:300px;">
+        <button onclick="window.updateSettings()" style="background:#22c55e;">SAVE</button>
+    </div>
 
-        <hr>
-        
-        <h3>📺 Video Management</h3>
-        <input type="text" id="new-video-desc" placeholder="Video Description">
-        <input type="text" id="new-video-link" placeholder="Video Link (URL)">
-        <button onclick="window.addVideoLink()">Add Video</button>
-        
-        <h4>Current Active Videos:</h4>
-        <div id="current-videos" class="admin-list-container">
-            <p style="text-align: center;">Loading current videos...</p>
-        </div>
+    <div class="card">
+        <h3>📝 Pending Registrations</h3>
+        <div id="pending-regs">Loading...</div>
+    </div>
+
+    <div class="card">
+        <h3>💸 Withdrawal Requests</h3>
+        <div id="pending-withdrawals">Loading...</div>
+    </div>
+
+    <div class="card">
+        <h3>📺 Video Manager</h3>
+        <input type="text" id="vid-title" placeholder="Description">
+        <input type="text" id="vid-link" placeholder="YouTube Link">
+        <button onclick="window.addVideo()" style="background:#ff8c00;">ADD VIDEO</button>
+        <div id="admin-videos" style="margin-top:15px;"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
     <script src="app.js"></script>
 </body>
 </html>
-
