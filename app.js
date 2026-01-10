@@ -25,6 +25,10 @@ window.handleUserLogin = async function() {
 };
 
 window.handleRegistration = async function() {
+    // 1. Button Disable (Safety against Double Click)
+    const btn = document.querySelector('button[onclick="window.handleRegistration()"]');
+    if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
+
     const name = document.getElementById('reg-name').value;
     const phone = document.getElementById('reg-phone').value;
     const pass = document.getElementById('reg-password').value;
@@ -32,7 +36,11 @@ window.handleRegistration = async function() {
     const trans = document.getElementById('trans-details').value;
     const refIdInput = document.getElementById('reg-referrer-id').value.trim();
 
-    if(!name || !phone || !pass || !pkgId) return alert("All fields are required!");
+    // Validation Fail hone par button wapas chalu karo
+    if(!name || !phone || !pass || !pkgId) {
+        if(btn) { btn.disabled = false; btn.innerText = "REGISTER NOW"; }
+        return alert("All fields are required!");
+    }
 
     let refUUID = null;
     if(refIdInput.length > 5) {
@@ -42,6 +50,7 @@ window.handleRegistration = async function() {
 
     let isFree = (pkgId === "FREE_PLAN");
     
+    // Create User
     const { data: newUser, error } = await sb.from('users').insert([{ 
         full_name: name,
         phone_number: phone, 
@@ -51,10 +60,21 @@ window.handleRegistration = async function() {
         referred_by_id: refUUID 
     }]).select().single();
 
-    if(error) return alert("Error: " + error.message);
+    // Error Handling (Duplicate Check included)
+    if(error) {
+        if(btn) { btn.disabled = false; btn.innerText = "REGISTER NOW"; }
+        if(error.message.includes('unique constraint') || error.code === '23505') {
+            return alert("This Phone Number is already registered! Please Login.");
+        }
+        return alert("Error: " + error.message);
+    }
 
+    // Payment Handling
     if(!isFree) {
-        if(!trans) return alert("UTR Number is required!");
+        if(!trans) {
+             if(btn) { btn.disabled = false; btn.innerText = "REGISTER NOW"; }
+             return alert("UTR Number is required!");
+        }
         const { data: pkg } = await sb.from('packages').select('price').eq('id', pkgId).single();
         await sb.from('transactions').insert([{ 
             user_id: newUser.id, amount: pkg.price, utr_number: trans, package_id: pkgId 
@@ -118,14 +138,13 @@ window.loadDashboardData = async function() {
     else document.getElementById('video-list').innerHTML = "<div style='text-align:center; padding:20px; color:orange; background:white; border-radius:10px;'>Account Pending Approval...</div>";
 };
 
-// --- 4. VIDEO & TIMER (FIXED: USER SPECIFIC STORAGE) ---
+// --- 4. VIDEO & TIMER (FIXED: USER SPECIFIC & ANTI-CHEAT) ---
 
 window.fetchVideos = async function() {
-    const uid = localStorage.getItem('user_id'); // Current User ID
+    const uid = localStorage.getItem('user_id'); 
     const { data: vids } = await sb.from('videos').select('*').eq('is_active', true);
     const list = document.getElementById('video-list');
     
-    // Check specific storage for THIS user
     const curV = localStorage.getItem(`running_vid_${uid}`);
 
     list.innerHTML = vids.map(v => {
@@ -145,7 +164,6 @@ window.fetchVideos = async function() {
 
 window.startVideo = function(vid, link) {
     const uid = localStorage.getItem('user_id');
-    // Save with User ID Key
     localStorage.setItem(`running_vid_${uid}`, vid);
     localStorage.setItem(`start_time_${uid}`, Date.now());
     window.open(link, '_blank');
@@ -159,25 +177,44 @@ window.checkAutoClaim = function(vid) {
     if(elapsed >= 10) window.claimEarnings(vid, true); 
 };
 
+// --- CRITICAL UPDATE: ANTI-CHEAT PARAMETER ADDED ---
 window.claimEarnings = async function(vid, isAuto = false) {
     const uid = localStorage.getItem('user_id');
     const start = parseInt(localStorage.getItem(`start_time_${uid}`));
     
-    if(!start) return; // Safety check
+    if(!start) return; 
 
     let mins = (Date.now() - start) / 60000;
     if(mins > 10) mins = 10; 
     if(mins < 1 && !isAuto) return alert("Watch for at least 1 minute!");
 
     const amount = window.userRate * mins;
-    await sb.rpc('update_user_earnings', { user_id_input: uid, amount_to_add: amount });
+
+    // Database Call (Added 'minutes_claimed' for Anti-Cheat)
+    const { error } = await sb.rpc('update_user_earnings', { 
+        user_id_input: uid, 
+        amount_to_add: amount,
+        minutes_claimed: mins 
+    });
     
-    // Clear ONLY this user's data
-    localStorage.removeItem(`running_vid_${uid}`);
-    localStorage.removeItem(`start_time_${uid}`);
-    
-    alert(`Claimed ₹${amount.toFixed(2)}`);
-    location.reload();
+    if(error) {
+        console.error("DB Error:", error);
+        // Special message for Cheaters
+        if(error.message.includes('Security Alert')) {
+            alert("⚠️ MULTIPLE DEVICE ERROR:\nDouble earning detected from another device.\nPlease wait before claiming again.");
+            // Clear local storage to reset state
+            localStorage.removeItem(`running_vid_${uid}`);
+            localStorage.removeItem(`start_time_${uid}`);
+            location.reload();
+        } else {
+            alert("Error saving earning: " + error.message);
+        }
+    } else {
+        localStorage.removeItem(`running_vid_${uid}`);
+        localStorage.removeItem(`start_time_${uid}`);
+        alert(`Success! Claimed ₹${amount.toFixed(2)}`);
+        location.reload();
+    }
 };
 
 // --- 5. WITHDRAWAL & HISTORY ---
@@ -322,4 +359,4 @@ document.addEventListener('DOMContentLoaded', () => {
         window.toggleForm('register');
     }
 });
-    
+                                 
