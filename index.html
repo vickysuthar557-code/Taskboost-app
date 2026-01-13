@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskBoost Elite</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
@@ -28,11 +29,15 @@
         
         .admin-box { margin-top: 20px; border-top: 1px dashed #cbd5e1; padding-top: 15px; display: none; }
         
-        /* Referral Table for Register Page */
+        /* Referral Table */
         .plan-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 20px; background: #f8fafc; border-radius: 15px; overflow: hidden; }
         .plan-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #334155; }
         .plan-table tr:last-child td { border-bottom: none; }
         .plan-header { background: #e2e8f0; color: #475569 !important; font-size: 10px; text-transform: uppercase; }
+
+        /* Payment Section Styles */
+        .upi-box { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 5px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -45,7 +50,7 @@
 
         <div id="login-box" class="card">
             <h2>Welcome Back</h2>
-            <input type="text" id="login-phone" placeholder="Phone Number">
+            <input type="number" id="login-phone" placeholder="Phone Number">
             <input type="password" id="login-password" placeholder="Password">
             <button onclick="window.handleUserLogin()">SECURE LOGIN</button>
             
@@ -53,16 +58,16 @@
             <div class="link" onclick="document.getElementById('admin-login').style.display='block'" style="font-size:11px; opacity:0.5; margin-top:30px;">Admin Panel</div>
             
             <div id="admin-login" class="admin-box">
-                <input type="text" id="admin-id" placeholder="Admin ID">
+                <input type="password" id="admin-id" placeholder="Admin ID">
                 <input type="password" id="admin-pass" placeholder="Password">
                 <button onclick="window.adminLogin()" style="background:#0f172a; box-shadow:none;">ACCESS DASHBOARD</button>
             </div>
         </div>
 
-        <div id="reg-box" class="card" style="display:none;">
+        <div id="reg-box" class="card hidden">
             <h2>Create Account</h2>
             <input type="text" id="reg-name" placeholder="Full Name">
-            <input type="text" id="reg-phone" placeholder="Phone Number">
+            <input type="number" id="reg-phone" placeholder="Phone Number">
             <input type="password" id="reg-password" placeholder="Create Password">
             <input type="text" id="reg-referrer-id" placeholder="Referral ID (Optional)">
             
@@ -73,29 +78,37 @@
                 <option value="PKG_1000">Bronze (₹1000) - ₹0.80/min</option>
                 <option value="PKG_2000">Silver (₹2000) - ₹1.60/min</option>
                 <option value="PKG_3000">Gold (₹3000) - ₹2.20/min</option>
-                <option value="PKG_5000">Platinum (₹5000) - ₹5.00/min</option>
-                <option value="PKG_10000">Diamond (₹10000) - ₹10.00/min</option>
+                <option value="PKG_5000">Platinum (₹5000) - ₹3.00/min</option>
+                <option value="PKG_10000">Diamond (₹10000) - ₹5.00/min</option>
             </select>
 
-            <div id="payment-section" style="display:none; background:#fff7ed; padding:15px; border-radius:15px; border:2px dashed #ff9d2e; margin-top:10px; text-align:center;">
-                <p style="margin:0 0 10px 0; font-size:12px; font-weight:bold; color:#c2410c;">Step 1: Payment</p>
-                <button onclick="window.payNow()" style="background:#22c55e; margin-top:0; padding:12px; box-shadow:none;">📲 Pay via UPI App</button>
+            <div id="payment-section" style="display:none; background:#ffffff; padding:15px; border-radius:15px; border:1px solid #e2e8f0; margin-top:15px; text-align:center;">
+                <h4 style="margin:0 0 15px 0; color:#0f172a;">Scan to Pay</h4>
                 
-                <p style="margin:10px 0; font-size:11px; color:#666;">OR Scan QR Code</p>
-                <img id="pay-qr-img" src="" style="width:140px; border-radius:10px; border:2px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
-                <p style="font-size:11px; margin-top:5px;">UPI: <strong id="pay-upi-display" style="user-select:all;">...</strong></p>
+                <div style="background:#fff; padding:5px; border:1px solid #e2e8f0; border-radius:10px; display:inline-block; margin-bottom:15px;">
+                    <img id="pay-qr-img" src="" style="width:140px; height:140px; display:block;">
+                </div>
+
+                <div class="upi-box" onclick="window.copyRegUPI()">
+                    <span id="pay-upi-display" style="font-family:monospace; font-weight:bold; color:#334155; font-size:14px;">Loading...</span>
+                    <i class="fas fa-copy" style="color:#ff8c00;"></i>
+                </div>
+                <p style="font-size:10px; color:#64748b; margin-top:5px; margin-bottom: 15px;">Tap box to Copy UPI ID</p>
+
+                <button onclick="window.payNow()" style="background:#22c55e; margin-top:0; padding:12px; box-shadow:none; margin-bottom: 15px;">Open Payment App</button>
                 
-                <p style="margin:10px 0 5px 0; font-size:12px; font-weight:bold; color:#c2410c;">Step 2: Verification</p>
-                <input type="text" id="trans-details" placeholder="Enter 12-Digit UTR Number" style="background:white;">
+                <div style="text-align:left;">
+                    <label style="font-size:12px; font-weight:bold; color:#475569;">Transaction ID / UTR:</label>
+                    <input type="text" id="trans-details" placeholder="Enter 12-Digit UTR Number" style="background:white; border:1px solid #cbd5e1;">
+                </div>
             </div>
 
             <table class="plan-table">
                 <tr class="plan-header"><td>Level</td><td>BONUS</td><td>RATE+</td></tr>
-                <tr><td>Level 1</td><td style="color:#10b981;">₹100</td><td>+0.25</td></tr>
-                <tr><td>Level 2</td><td style="color:#10b981;">₹50</td><td>+0.15</td></tr>
-                <tr><td>Level 3</td><td style="color:#10b981;">₹30</td><td>+0.10</td></tr>
+                <tr><td>Level 1</td><td style="color:#10b981;">₹100</td><td>+0.15</td></tr>
+                <tr><td>Level 2</td><td style="color:#10b981;">₹50</td><td>+0.10</td></tr>
+                <tr><td>Level 3</td><td style="color:#10b981;">₹30</td><td>+0.05</td></tr>
                 <tr><td>Level 4-5</td><td style="color:#10b981;">₹20</td><td>+0.05</td></tr>
-                <tr><td>Level 6-10</td><td style="color:#10b981;">₹10</td><td>+0.05</td></tr>
             </table>
 
             <button onclick="window.handleRegistration()">REGISTER NOW</button>
