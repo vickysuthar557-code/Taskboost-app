@@ -25,7 +25,6 @@ window.handleUserLogin = async function() {
 };
 
 window.handleRegistration = async function() {
-    // 1. Button Disable (Safety against Double Click)
     const btn = document.querySelector('button[onclick="window.handleRegistration()"]');
     if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
 
@@ -36,7 +35,6 @@ window.handleRegistration = async function() {
     const trans = document.getElementById('trans-details').value;
     const refIdInput = document.getElementById('reg-referrer-id').value.trim();
 
-    // Validation Fail hone par button wapas chalu karo
     if(!name || !phone || !pass || !pkgId) {
         if(btn) { btn.disabled = false; btn.innerText = "REGISTER NOW"; }
         return alert("All fields are required!");
@@ -50,7 +48,6 @@ window.handleRegistration = async function() {
 
     let isFree = (pkgId === "FREE_PLAN");
     
-    // Create User
     const { data: newUser, error } = await sb.from('users').insert([{ 
         full_name: name,
         phone_number: phone, 
@@ -60,16 +57,14 @@ window.handleRegistration = async function() {
         referred_by_id: refUUID 
     }]).select().single();
 
-    // Error Handling (Duplicate Check included)
     if(error) {
         if(btn) { btn.disabled = false; btn.innerText = "REGISTER NOW"; }
         if(error.message.includes('unique constraint') || error.code === '23505') {
-            return alert("This Phone Number is already registered! Please Login.");
+            return alert("Phone Number already registered! Please Login.");
         }
         return alert("Error: " + error.message);
     }
 
-    // Payment Handling
     if(!isFree) {
         if(!trans) {
              if(btn) { btn.disabled = false; btn.innerText = "REGISTER NOW"; }
@@ -90,8 +85,13 @@ window.handleRegistration = async function() {
 
 window.fetchAdminSettings = async function() {
     const { data } = await sb.from('admin_settings').select('*').single();
+    // For Register Page
     if(document.getElementById('pay-upi-display')) document.getElementById('pay-upi-display').innerText = data.upi_id;
     if(document.getElementById('pay-qr-img')) document.getElementById('pay-qr-img').src = data.qr_url;
+    
+    // For Dashboard Upgrade Modal
+    if(document.getElementById('upgrade-upi-display')) document.getElementById('upgrade-upi-display').innerText = data.upi_id;
+    if(document.getElementById('upgrade-qr-img')) document.getElementById('upgrade-qr-img').src = data.qr_url;
 };
 
 window.togglePay = function() {
@@ -120,10 +120,12 @@ window.loadDashboardData = async function() {
     document.getElementById('user-phone').innerText = `ID: ${user.phone_number}`;
     document.getElementById('total-earning').innerText = `₹ ${parseFloat(user.total_earnings).toFixed(2)}`;
     document.getElementById('withdrawable-amount').innerText = `₹ ${parseFloat(user.withdrawable_amount).toFixed(2)}`;
+    document.getElementById('plan-name').innerText = user.package_id; 
     
     window.userRate = (parseFloat(user.base_earning_rate) || 0) + (parseFloat(user.extra_earning_rate) || 0);
     document.getElementById('current-rate').innerText = `₹ ${window.userRate.toFixed(4)}`;
     
+    // Speedometer Logic
     const meter = document.querySelector('.speedo-arc');
     if(meter) {
         let rotation = -45 + (window.userRate * 20); 
@@ -134,11 +136,20 @@ window.loadDashboardData = async function() {
     const link = `${window.location.origin}/index.html?ref=${user.id}`;
     if(document.getElementById('referral-link')) document.getElementById('referral-link').value = link;
 
+    // === NEW LOGIC: SHOW UPGRADE BUTTON ONLY FOR FREE & 500 ===
+    const upgradeBtn = document.getElementById('upgrade-trigger-btn');
+    if(user.package_id === 'FREE_PLAN' || user.package_id === 'PKG_500') {
+        if(upgradeBtn) upgradeBtn.style.display = 'block'; // Show Button
+    } else {
+        if(upgradeBtn) upgradeBtn.style.display = 'none';  // Hide Button
+    }
+    // ==========================================================
+
     if(user.is_approved) window.fetchVideos();
     else document.getElementById('video-list').innerHTML = "<div style='text-align:center; padding:20px; color:orange; background:white; border-radius:10px;'>Account Pending Approval...</div>";
 };
 
-// --- 4. VIDEO & TIMER (FIXED: USER SPECIFIC & ANTI-CHEAT) ---
+// --- 4. VIDEO & EARNING ---
 
 window.fetchVideos = async function() {
     const uid = localStorage.getItem('user_id'); 
@@ -177,7 +188,6 @@ window.checkAutoClaim = function(vid) {
     if(elapsed >= 10) window.claimEarnings(vid, true); 
 };
 
-// --- CRITICAL UPDATE: ANTI-CHEAT PARAMETER ADDED ---
 window.claimEarnings = async function(vid, isAuto = false) {
     const uid = localStorage.getItem('user_id');
     const start = parseInt(localStorage.getItem(`start_time_${uid}`));
@@ -190,7 +200,7 @@ window.claimEarnings = async function(vid, isAuto = false) {
 
     const amount = window.userRate * mins;
 
-    // Database Call (Added 'minutes_claimed' for Anti-Cheat)
+    // Call Secure SQL Function
     const { error } = await sb.rpc('update_user_earnings', { 
         user_id_input: uid, 
         amount_to_add: amount,
@@ -199,15 +209,18 @@ window.claimEarnings = async function(vid, isAuto = false) {
     
     if(error) {
         console.error("DB Error:", error);
-        // Special message for Cheaters
         if(error.message.includes('Security Alert')) {
-            alert("⚠️ MULTIPLE DEVICE ERROR:\nDouble earning detected from another device.\nPlease wait before claiming again.");
-            // Clear local storage to reset state
+            alert("⚠️ MULTIPLE DEVICE ERROR:\nPlease logout from other devices.");
+            localStorage.removeItem(`running_vid_${uid}`);
+            localStorage.removeItem(`start_time_${uid}`);
+            location.reload();
+        } else if (error.message.includes('Daily')) {
+            alert("⚠️ " + error.message); // Daily limit error
             localStorage.removeItem(`running_vid_${uid}`);
             localStorage.removeItem(`start_time_${uid}`);
             location.reload();
         } else {
-            alert("Error saving earning: " + error.message);
+            alert("Error: " + error.message);
         }
     } else {
         localStorage.removeItem(`running_vid_${uid}`);
@@ -222,7 +235,7 @@ window.claimEarnings = async function(vid, isAuto = false) {
 window.openWithdrawModal = function() {
     const cleanForm = `
         <h3 style="margin-top:0;">Request Withdrawal</h3>
-        <input type="number" id="withdrawal-amount-input" placeholder="Amount (Min ₹999)">
+        <input type="number" id="withdrawal-amount-input" placeholder="Amount (Min ₹1500)">
         <input type="text" id="withdrawal-upi-input" placeholder="Enter UPI ID">
         <button onclick="window.handleWithdrawal()" style="width:100%; padding:18px; background:#10b981; color:white; border:none; border-radius:16px; font-weight:bold; font-size:16px;">CONFIRM REQUEST</button>
     `;
@@ -235,7 +248,7 @@ window.handleWithdrawal = async function() {
     const upi = document.getElementById('withdrawal-upi-input').value;
     const uid = localStorage.getItem('user_id');
 
-    if(amt < 999) return alert("Min Withdrawal ₹999");
+    if(amt < 1500) return alert("Min Withdrawal ₹1500");
     const { error } = await sb.rpc('request_withdrawal', { user_id_input: uid, amount_req: amt, upi_input: upi });
     
     if(error) alert("Failed: " + error.message);
@@ -261,7 +274,44 @@ window.loadWithdrawHistory = async function() {
     openSheet();
 };
 
-// --- 6. ADMIN PANEL ---
+// --- 6. UPGRADE SYSTEM (NEW) ---
+
+window.openUpgradeModal = function() {
+    window.fetchAdminSettings(); // QR Code load karne ke liye
+    document.getElementById('upgrade-modal-overlay').style.display = 'flex';
+};
+
+window.closeUpgradeModal = function() {
+    document.getElementById('upgrade-modal-overlay').style.display = 'none';
+};
+
+window.handleUpgradePay = async function() {
+    const pkgId = document.getElementById('upgrade-package-select').value;
+    if(!pkgId) return;
+    const { data: pkg } = await sb.from('packages').select('price').eq('id', pkgId).single();
+    const { data: set } = await sb.from('admin_settings').select('upi_id').single();
+    window.location.href = `upi://pay?pa=${set.upi_id}&pn=TaskBoostUpgrade&am=${pkg.price}&cu=INR`;
+};
+
+window.submitUpgradeRequest = async function() {
+    const uid = localStorage.getItem('user_id');
+    const pkgId = document.getElementById('upgrade-package-select').value;
+    const utr = document.getElementById('upgrade-utr').value;
+
+    if(!utr || utr.length < 12) return alert("Enter valid 12-digit UTR");
+
+    const { error } = await sb.from('upgrade_requests').insert([
+        { user_id: uid, package_id: pkgId, utr_number: utr, status: 'pending' }
+    ]);
+
+    if(error) alert("Error: " + error.message);
+    else {
+        alert("Upgrade Request Sent! Please wait for approval.");
+        window.closeUpgradeModal();
+    }
+};
+
+// --- 7. ADMIN PANEL ---
 
 window.adminLogin = function() {
     const id = document.getElementById('admin-id').value;
@@ -291,6 +341,17 @@ window.loadAdminPanel = async function() {
             </div>
         </div>`).join('');
 
+    // UPGRADE REQUESTS (NEW)
+    const { data: upgrades } = await sb.from('upgrade_requests').select('*, users(phone_number)').eq('status', 'pending');
+    document.getElementById('pending-upgrades').innerHTML = upgrades.map(u => `
+        <div class="row">
+            <div>User: ${u.users.phone_number}<br><small>Plan: ${u.package_id} | UTR: ${u.utr_number}</small></div>
+            <div>
+                <button onclick="window.approveUpgrade('${u.id}')" style="background:green;">✓</button>
+                <button onclick="window.rejectUpgrade('${u.id}')" style="background:red;">✗</button>
+            </div>
+        </div>`).join('');
+
     // Withdrawals
     const { data: wds } = await sb.from('withdrawal_history').select('*, users(phone_number)').eq('status', 'pending');
     document.getElementById('pending-withdrawals').innerHTML = wds.map(w => `
@@ -309,9 +370,11 @@ window.loadAdminPanel = async function() {
     `).join('');
 };
 
+// --- ADMIN ACTIONS ---
+
 window.approveReg = async function(uid, tid, pkgId) {
     const { data: pkg } = await sb.from('packages').select('*').eq('id', pkgId).single();
-    await sb.from('users').update({ is_approved: true, base_earning_rate: pkg.base_rate_per_min }).eq('id', uid);
+    await sb.from('users').update({ is_approved: true, base_earning_rate: pkg.base_rate_per_min, package_id: pkgId }).eq('id', uid);
     await sb.from('transactions').update({ status: 'approved' }).eq('id', tid);
     alert("Approved!"); window.loadAdminPanel();
 };
@@ -320,6 +383,17 @@ window.rejectReg = async function(tid) {
     if(!confirm("Reject this User?")) return;
     await sb.from('transactions').update({ status: 'rejected' }).eq('id', tid);
     alert("Rejected!"); window.loadAdminPanel();
+};
+
+window.approveUpgrade = async function(reqId) {
+    const { error } = await sb.rpc('approve_upgrade_request', { request_id: reqId });
+    if(error) alert("Error: " + error.message);
+    else { alert("Upgrade Approved!"); window.loadAdminPanel(); }
+};
+
+window.rejectUpgrade = async function(reqId) {
+    await sb.from('upgrade_requests').update({ status: 'rejected' }).eq('id', reqId);
+    alert("Rejected"); window.loadAdminPanel();
 };
 
 window.rejectWithdrawal = async function(wid) {
@@ -359,4 +433,15 @@ document.addEventListener('DOMContentLoaded', () => {
         window.toggleForm('register');
     }
 });
-                                 
+// --- Yahan Paste Karein (app.js ke end mein) ---
+
+window.copyUPI = function() {
+    const upiText = document.getElementById('upgrade-upi-display').innerText;
+    if(upiText && upiText !== "Loading...") {
+        navigator.clipboard.writeText(upiText).then(() => {
+            alert("UPI ID Copied: " + upiText);
+        }).catch(err => {
+            console.error('Failed to copy', err);
+            // Fallback agar navigator fail ho
+            const textArea = document.createElement("textarea");
+            textArea.value
