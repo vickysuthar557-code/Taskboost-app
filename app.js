@@ -474,7 +474,7 @@ window.approveReg = async function(uid, tid, pkgId) {
     const { error: userErr } = await sb.rpc('admin_action_approve_user', { 
         target_user_id: uid, 
         pkg_id: pkgId,
-        admin_pass: '0909' 
+        admin_pass: '5845' 
     });
 
     if(userErr) {
