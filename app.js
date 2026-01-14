@@ -456,29 +456,43 @@ window.loadAdminPanel = async function() {
     `).join('');
 };
 
-// --- ADMIN ACTIONS ---
+
+// --- ADMIN ACTIONS (SECURE & FINAL) ---
 
 window.approveReg = async function(uid, tid, pkgId) {
-    // Package ki details nikalo (Rate set karne ke liye)
-    const { data: pkg } = await sb.from('packages').select('*').eq('id', pkgId).single();
+    // 1. Button ko temporarily lock karo (Taaki do baar click na ho)
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "Processing...";
+    btn.disabled = true;
+
+    // 2. SECURE FUNCTION CALL (Ye RLS bypass karega password ke sath)
+    // Note: Hum '0909' password bhej rahe hain jo humne SQL mein set kiya tha
+    const { error } = await sb.rpc('admin_action_approve_user', { 
+        target_user_id: uid, 
+        pkg_id: pkgId,
+        admin_pass: '0909' 
+    });
+
+    if(error) {
+        alert("Action Failed: " + error.message);
+        // Agar fail hua to button wapas normal kar do
+        btn.innerText = originalText;
+        btn.disabled = false;
+        return;
+    }
+
+    // 3. Transaction table update karo (Status: Approved)
+    const { error: txError } = await sb.from('transactions').update({ status: 'approved' }).eq('id', tid);
     
-    if(!pkg) return alert("Package not found!");
-
-    // 1. User ko Approve karo aur Rate set karo
-    const { error: uErr } = await sb.from('users').update({ 
-        is_approved: true, 
-        base_earning_rate: pkg.base_rate_per_min, 
-        package_id: pkgId 
-    }).eq('id', uid);
-
-    if(uErr) return alert("Error updating user: " + uErr.message);
-
-    // 2. Transaction ko Approved mark karo
-    await sb.from('transactions').update({ status: 'approved' }).eq('id', tid);
-    
-    alert("User Approved Successfully!"); 
-    window.loadAdminPanel(); // List refresh
+    if(txError) {
+        alert("User Approved but Transaction status update failed: " + txError.message);
+    } else {
+        alert("✅ User Approved Successfully & Securely!"); 
+        window.loadAdminPanel(); // List refresh
+    }
 };
+
 
 window.rejectReg = async function(tid) {
     if(!confirm("Are you sure you want to Reject this User?")) return;
