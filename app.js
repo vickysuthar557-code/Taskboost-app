@@ -366,7 +366,7 @@ window.submitUpgradeRequest = async function() {
 window.adminLogin = function() {
     const id = document.getElementById('admin-id').value;
     const pass = document.getElementById('admin-pass').value;
-    if(id === "9090" && pass === "0909") {
+    if(id === "7014" && pass === "5845") {
         localStorage.setItem('admin_session', 'true');
         window.location.href = 'admin.html';
     } else alert("Invalid Admin Credentials");
