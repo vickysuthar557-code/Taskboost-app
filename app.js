@@ -64,7 +64,7 @@ window.handleRegistration = async function() {
 
     let isFree = (pkgId === "FREE_PLAN");
     
-    // Create User
+    // Create User (Allowed via RLS Policy)
     const { data: newUser, error } = await sb.from('users').insert([{ 
         full_name: name,
         phone_number: phone, 
@@ -91,7 +91,7 @@ window.handleRegistration = async function() {
         }
         const { data: pkg } = await sb.from('packages').select('price').eq('id', pkgId).single();
         
-        // Transaction Insert
+        // Transaction Insert (Allowed via RLS Policy)
         await sb.from('transactions').insert([{ 
             user_id: newUser.id, amount: pkg.price, utr_number: trans, package_id: pkgId 
         }]);
@@ -347,6 +347,7 @@ window.submitUpgradeRequest = async function() {
 
     if(!utr || utr.length < 12) return alert("Enter valid 12-digit UTR");
 
+    // Allowed via RLS Policy
     const { error } = await sb.from('upgrade_requests').insert([
         { user_id: uid, package_id: pkgId, utr_number: utr, status: 'pending' }
     ]);
@@ -457,55 +458,64 @@ window.loadAdminPanel = async function() {
 };
 
 
-// --- ADMIN ACTIONS (SECURE & FINAL) ---
+// ==========================================
+// 8. ADMIN ACTIONS (SECURE & FINAL)
+// ==========================================
 
 window.approveReg = async function(uid, tid, pkgId) {
-    // 1. Button ko temporarily lock karo (Taaki do baar click na ho)
+    // 1. Button UI Change
     const btn = event.target;
     const originalText = btn.innerText;
     btn.innerText = "Processing...";
     btn.disabled = true;
 
-    // 2. SECURE FUNCTION CALL (Ye RLS bypass karega password ke sath)
-    // Note: Hum '0909' password bhej rahe hain jo humne SQL mein set kiya tha
-    const { error } = await sb.rpc('admin_action_approve_user', { 
+    // 2. User Approve (Secure Function Call)
+    // Note: '0909' wahi password hai jo humne SQL function me set kiya tha
+    const { error: userErr } = await sb.rpc('admin_action_approve_user', { 
         target_user_id: uid, 
         pkg_id: pkgId,
         admin_pass: '0909' 
     });
 
-    if(error) {
-        alert("Action Failed: " + error.message);
-        // Agar fail hua to button wapas normal kar do
+    if(userErr) {
+        alert("Action Failed: " + userErr.message);
         btn.innerText = originalText;
         btn.disabled = false;
         return;
     }
 
-    // 3. Transaction table update karo (Status: Approved)
-    const { error: txError } = await sb.from('transactions').update({ status: 'approved' }).eq('id', tid);
+    // 3. Transaction Status Update (Secure Function Call)
+    const { error: txError } = await sb.rpc('admin_approve_transaction', { trans_id: tid });
     
     if(txError) {
         alert("User Approved but Transaction status update failed: " + txError.message);
     } else {
         alert("✅ User Approved Successfully & Securely!"); 
-        window.loadAdminPanel(); // List refresh
+        window.loadAdminPanel(); 
     }
 };
-
 
 window.rejectReg = async function(tid) {
     if(!confirm("Are you sure you want to Reject this User?")) return;
     
-    await sb.from('transactions').update({ status: 'rejected' }).eq('id', tid);
-    alert("Registration Rejected!"); 
-    window.loadAdminPanel();
+    // Secure Function Call
+    const { error } = await sb.rpc('admin_reject_transaction', { trans_id: tid });
+    
+    if(error) alert("Error: " + error.message);
+    else {
+        alert("Registration Rejected!"); 
+        window.loadAdminPanel();
+    }
 };
 
-// --- UPGRADE APPROVALS ---
+// ==========================================
+// 9. UPGRADE APPROVALS (SECURE)
+// ==========================================
 
 window.approveUpgrade = async function(reqId) {
-    // SQL Function call karenge jo humne database me banaya tha
+    if(!confirm("Approve this upgrade?")) return;
+
+    // Secure Function Call
     const { error } = await sb.rpc('approve_upgrade_request', { request_id: reqId });
     
     if(error) {
@@ -519,25 +529,37 @@ window.approveUpgrade = async function(reqId) {
 window.rejectUpgrade = async function(reqId) {
     if(!confirm("Reject this upgrade request?")) return;
 
-    await sb.from('upgrade_requests').update({ status: 'rejected' }).eq('id', reqId);
-    alert("Request Rejected"); 
-    window.loadAdminPanel();
+    // Secure Function Call
+    const { error } = await sb.rpc('admin_reject_upgrade_request', { req_id: reqId });
+
+    if(error) alert("Error: " + error.message);
+    else {
+        alert("Request Rejected"); 
+        window.loadAdminPanel();
+    }
 };
 
-// --- WITHDRAWAL ACTIONS ---
+// ==========================================
+// 10. WITHDRAWAL ACTIONS (SECURE)
+// ==========================================
 
 window.approveWithdrawal = async function(wid) {
     if(!confirm("Confirm Payment Sent?")) return;
 
-    await sb.from('withdrawal_history').update({ status: 'approved' }).eq('id', wid);
-    alert("Marked as Paid"); 
-    window.loadAdminPanel();
+    // Secure Function Call
+    const { error } = await sb.rpc('admin_approve_withdrawal', { withdraw_id: wid });
+    
+    if(error) alert("Error: " + error.message);
+    else {
+        alert("Marked as Paid"); 
+        window.loadAdminPanel();
+    }
 };
 
 window.rejectWithdrawal = async function(wid) {
     if(!confirm("Reject & Refund money to user wallet?")) return;
     
-    // SQL Function call for Refund
+    // Secure Function Call (Ye user ko paisa wapas dega)
     const { error } = await sb.rpc('reject_withdrawal_refund', { withdrawal_id_input: wid });
     
     if(error) alert(error.message); 
@@ -547,14 +569,19 @@ window.rejectWithdrawal = async function(wid) {
     }
 };
 
-// --- SETTINGS & VIDEOS ---
+// ==========================================
+// 11. SETTINGS & VIDEOS (SECURE)
+// ==========================================
 
 window.updateSettings = async function() {
     const upi = document.getElementById('admin-upi').value;
     const qr = document.getElementById('admin-qr').value;
 
-    await sb.from('admin_settings').update({ upi_id: upi, qr_url: qr }).eq('id', 1);
-    alert("Settings Saved!");
+    // Secure Function Call
+    const { error } = await sb.rpc('admin_update_settings', { new_upi: upi, new_qr: qr });
+    
+    if(error) alert("Error: " + error.message);
+    else alert("Settings Saved Securely!");
 };
 
 window.addVideo = async function() {
@@ -563,18 +590,29 @@ window.addVideo = async function() {
 
     if(!title || !link) return alert("Enter Title and Link");
 
-    await sb.from('videos').insert([{ description: title, video_link: link }]);
-    alert("Video Added"); 
-    window.loadAdminPanel();
+    // Secure Function Call
+    const { error } = await sb.rpc('admin_add_video', { title: title, link: link });
+
+    if(error) alert("Error: " + error.message);
+    else { 
+        alert("Video Added"); 
+        window.loadAdminPanel();
+    }
 };
 
 window.deleteVideo = async function(vid) { 
     if(!confirm("Delete this video?")) return;
-    await sb.from('videos').delete().eq('id', vid); 
-    window.loadAdminPanel(); 
+    
+    // Secure Function Call
+    const { error } = await sb.rpc('admin_delete_video', { vid_id: vid });
+    
+    if(error) alert("Error: " + error.message);
+    else window.loadAdminPanel(); 
 };
 
-// --- UTILS ---
+// ==========================================
+// 12. UTILS & STARTUP
+// ==========================================
 
 window.copyReferralLink = function() {
     const el = document.getElementById("referral-link");
@@ -592,9 +630,11 @@ window.logoutUser = () => {
 
 // Auto-Fill Referral Code on Load
 document.addEventListener('DOMContentLoaded', () => {
+    // URL se ?ref=CODE padho
     const params = new URLSearchParams(window.location.search);
     if(params.get('ref') && document.getElementById('reg-referrer-id')) {
         document.getElementById('reg-referrer-id').value = params.get('ref');
-        window.toggleForm('register');
+        // Seedha Register form dikhao
+        if(window.toggleForm) window.toggleForm('register');
     }
 });
