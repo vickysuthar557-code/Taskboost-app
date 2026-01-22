@@ -3,57 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskBoost Admin</title>
+    <title>TaskBoost Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; padding: 20px; max-width: 800px; margin: auto; }
-        h1 { color: #0f172a; margin-bottom: 30px; }
-        .card { background: white; padding: 25px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h3 { margin-top: 0; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-        .row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 15px 0; }
-        .row:last-child { border-bottom: none; }
-        button { cursor: pointer; padding: 8px 15px; border: none; border-radius: 10px; color: white; font-weight: bold; margin-left: 5px; font-size: 13px; }
-        input { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; margin-right: 5px; outline: none; }
-        input:focus { border-color: #ff8c00; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        :root { --primary: #0f172a; --accent: #ff8c00; --bg: #f1f5f9; }
+        
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); padding: 20px; }
+        
+        /* LOGIN SECTION */
+        #admin-login-box {
+            max-width: 400px; margin: 100px auto; background: white; padding: 40px;
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+        }
+        
+        /* DASHBOARD LAYOUT */
+        .admin-container { max-width: 1000px; margin: 0 auto; display: none; /* Hidden until login */ }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { color: var(--primary); margin: 0; }
+        
+        .grid-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+        
+        /* CARDS */
+        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content; }
+        .card h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* LIST ITEMS */
+        .row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 10px; margin-bottom: 10px;
+        }
+        .row div { font-size: 13px; color: #334155; }
+        .row strong { color: #0f172a; font-size: 14px; }
+        
+        /* INPUTS & BUTTONS */
+        input {
+            width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #cbd5e1;
+            border-radius: 8px; box-sizing: border-box; font-family: inherit;
+        }
+        label { font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 4px; display: block; }
+        
+        button { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; padding: 8px 15px; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        
+        .btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; font-size: 14px; }
+        .btn-logout { background: #ef4444; color: white; padding: 10px 20px; }
+        
+        /* SCROLLABLE AREAS */
+        .scroll-list { max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-container { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
-<body onload="window.loadAdminPanel()">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h1>🛡️ Admin Dashboard</h1>
-        <button onclick="window.location.href='index.html'" style="background:#ef4444;">LOGOUT</button>
+<body>
+
+    <div id="admin-login-box">
+        <h2 style="color:var(--primary);">Admin Access</h2>
+        <input type="password" id="admin-id" placeholder="Admin ID">
+        <input type="password" id="admin-pass" placeholder="Password">
+        <button onclick="window.adminLogin()" class="btn-primary" style="background:var(--accent);">SECURE LOGIN</button>
     </div>
 
-    <div class="card">
-        <h3>💰 Payment Details</h3>
-        <input type="text" id="admin-upi" placeholder="UPI ID" style="width:200px;">
-        <input type="text" id="admin-qr" placeholder="QR Image URL" style="width:300px;">
-        <button onclick="window.updateSettings()" style="background:#22c55e;">SAVE</button>
-    </div>
+    <div class="admin-container" id="admin-dashboard-section">
+        <div class="header">
+            <h1>TaskBoost Admin</h1>
+            <button onclick="window.logoutUser()" class="btn-logout">Logout</button>
+        </div>
 
-    <div class="card">
-        <h3>📝 Pending Registrations</h3>
-        <div id="pending-regs">Loading...</div>
-    </div>
+        <div class="grid-container">
+            
+            <div class="card">
+                <h3>New Registrations</h3>
+                <div id="pending-regs" class="scroll-list">
+                    <p style="color:#94a3b8; text-align:center;">Loading...</p>
+                </div>
+            </div>
 
-    <div class="card">
-        <h3>🚀 Pending Upgrade Requests</h3>
-        <div id="pending-upgrades">Loading...</div>
-    </div>
+            <div class="card">
+                <h3>Plan Upgrades</h3>
+                <div id="pending-upgrades" class="scroll-list">
+                    <p style="color:#94a3b8; text-align:center;">Loading...</p>
+                </div>
+            </div>
 
-    <div class="card">
-        <h3>💸 Withdrawal Requests</h3>
-        <div id="pending-withdrawals">Loading...</div>
-    </div>
+            <div class="card" style="grid-column: 1 / -1;">
+                <h3>Withdrawal Requests</h3>
+                <div id="pending-withdrawals" class="scroll-list">
+                    <p style="color:#94a3b8; text-align:center;">Loading...</p>
+                </div>
+            </div>
 
-    <div class="card">
-        <h3>📺 Video Manager</h3>
-        <input type="text" id="vid-title" placeholder="Description">
-        <input type="text" id="vid-link" placeholder="YouTube Link">
-        <button onclick="window.addVideo()" style="background:#ff8c00;">ADD VIDEO</button>
-        <div id="admin-videos" style="margin-top:15px;"></div>
+            <div class="card">
+                <h3>Manage Videos</h3>
+                
+                <label>Video Title</label>
+                <input type="text" id="vid-title" placeholder="Ex: Watch Task 1">
+                
+                <label>YouTube Link</label>
+                <input type="text" id="vid-link" placeholder="Ex: https://youtu.be/...">
+                
+                <label>Duration (Minutes)</label>
+                <input type="number" id="vid-duration" placeholder="Ex: 10 (User must watch this long)">
+                
+                <button onclick="window.addVideo()" class="btn-primary" style="margin-top:10px;">ADD VIDEO</button>
+
+                <h4 style="margin-top:20px; border-bottom:1px solid #eee; padding-bottom:5px;">Active Videos</h4>
+                <div id="admin-videos" class="scroll-list" style="max-height: 150px;"></div>
+            </div>
+
+            <div class="card">
+                <h3>App Settings</h3>
+                
+                <label>UPI ID (For Payments)</label>
+                <input type="text" id="admin-upi" placeholder="user@upi">
+                
+                <label>QR Code Image URL</label>
+                <input type="text" id="admin-qr" placeholder="https://...">
+                
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <div style="flex:1;">
+                        <label>Min Withdrawal (₹)</label>
+                        <input type="number" id="admin-min-withdraw" placeholder="1500">
+                    </div>
+                    <div style="flex:1;">
+                        <label>Limit Freq (Days)</label>
+                        <input type="number" id="admin-withdraw-days" placeholder="7">
+                    </div>
+                </div>
+                <p style="font-size:10px; color:#64748b;">User can withdraw once every X days.</p>
+
+                <button onclick="window.updateSettings()" class="btn-primary" style="background:#10b981; margin-top:10px;">SAVE SETTINGS</button>
+            </div>
+
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0"></script>
     <script src="app.js"></script>
+
+    <script>
+        // Check Session on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem('admin_session') === 'true') {
+                document.getElementById('admin-login-box').style.display = 'none';
+                document.querySelector('.admin-container').style.display = 'block';
+                // app.js ka function call karo
+                if(window.loadAdminPanel) window.loadAdminPanel();
+            }
+        });
+    </script>
 </body>
 </html>
