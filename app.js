@@ -299,31 +299,42 @@ function startWatchTimer() {
 }
 
 // ==========================================
-// ADSTERRA DIRECT LINK TRIGGER (NEW)
+// MONETAG DIRECT LINK TRIGGER (NEW)
 // ==========================================
 window.claimEarnings = async function() {
-    // TRIGGER ADSTERRA DIRECT LINK (Replace with your actual link)
-    window.open('https://www.profitablecpmratenetwork.com/avt6k36n8?key=2f2bebbbb7e3e75a8ad9fc6248819947', '_blank');
+    // --- MONETAG DIRECT LINK TRIGGER ---
+    // Jab user click karega, pehle ye link naye tab mein khulega
+    window.open('https://omg10.com/4/10825577', '_blank');
 
     const uid = localStorage.getItem('user_id');
     const minsWatched = window.actualSecondsWatched / 60;
     const targetMins = window.requiredSeconds / 60;
 
-    if (window.actualSecondsWatched < (window.requiredSeconds - 10)) {
-        return alert(`Timer incomplete! You must watch for ${targetMins} minutes.`);
+    // Security Check: Kya user ne poora video dekha?
+    if (window.actualSecondsWatched < (window.requiredSeconds - 5)) {
+        return alert(`Timer incomplete! Please watch for ${targetMins} minutes.`);
     }
 
     const btn = document.getElementById('claim-btn');
-    btn.innerText = "Processing..."; btn.disabled = true;
+    if(btn) {
+        btn.innerText = "Verifying..."; 
+        btn.disabled = true;
+    }
 
+    // Earning Update Logic
     const amount = window.userRate * targetMins; 
-    const { error } = await sb.rpc('update_user_earnings', { user_id_input: uid, amount_to_add: amount, minutes_claimed: minsWatched });
+    const { error } = await sb.rpc('update_user_earnings', { 
+        user_id_input: uid, 
+        amount_to_add: amount, 
+        minutes_claimed: minsWatched 
+    });
     
-    if(error) { alert("Error: " + error.message); location.reload(); } 
-    else {
+    if(error) { 
+        alert("Error: " + error.message); 
+        location.reload(); 
+    } else {
         localStorage.removeItem(`running_vid_${uid}`);
-        localStorage.removeItem(`vid_duration_${uid}`);
-        alert(`Success! Earned ₹${amount.toFixed(2)}`);
+        alert(`Success! ₹${amount.toFixed(2)} added.`);
         location.reload();
     }
 };
